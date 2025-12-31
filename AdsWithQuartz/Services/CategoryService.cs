@@ -5,11 +5,14 @@ using AdsWithQuartz.Entities;
 using AdsWithQuartz.Responses;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AdsWithQuartz.Services;
 
-public class CategoryService(DataContext context, IMapper mapper) : ICategoryService
+public class CategoryService(DataContext context, IMapper mapper, IMemoryCache memoryCache) : ICategoryService
 {
+    private const string CategoriesCacheKey = "categories_all";
+
     public async Task<Response<Category>> CreateAsync(CreateCategoryDto dto)
     {
         var category = mapper.Map<Category>(dto);
@@ -20,7 +23,22 @@ public class CategoryService(DataContext context, IMapper mapper) : ICategorySer
 
     public async Task<Response<List<Category>>> GetAllAsync()
     {
-        var categories = await context.Categories.ToListAsync();
-        return new Response<List<Category>>(HttpStatusCode.OK,"Categories Listed Successfully!", categories);
+        if (!memoryCache.TryGetValue(CategoriesCacheKey, out List<Category>? categories))
+        {
+            categories = await context.Categories.ToListAsync();
+
+            var cacheOptions = new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+            };
+
+            memoryCache.Set(CategoriesCacheKey, categories, cacheOptions);
+        }
+
+        return new Response<List<Category>>(
+            HttpStatusCode.OK,
+            "Categories Listed Successfully!",
+            categories!
+        );
     }
 }

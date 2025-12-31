@@ -54,7 +54,7 @@ public class AdDeactivationBackgroundService : BackgroundService
                 _logger.LogError(ex, "Error while deactivating ads");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
         }
     }
 }
