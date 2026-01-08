@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using AdsWithQuartz.AutoMapper;
 using AdsWithQuartz.BackgroundServices;
 using AdsWithQuartz.Data;
+using AdsWithQuartz.Middleware;
 using AdsWithQuartz.QuartzJobs;
 using AdsWithQuartz.Services;
 using Microsoft.EntityFrameworkCore;
@@ -60,6 +61,8 @@ builder.Services.AddQuartzHostedService(q =>
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
